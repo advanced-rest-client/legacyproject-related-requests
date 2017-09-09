@@ -1,0 +1,106 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <script src="../../iron-test-helpers/test-helpers.js"></script>
+    <script src="../../iron-test-helpers/mock-interactions.js"></script>
+    <script src="../../chance/dist/chance.min.js"></script>
+    <script src="test-data-generator.js"></script>
+    <script src="pouchdb-mock.js"></script>
+    <link rel="import" href="../legacyproject-related-requests.html">
+  </head>
+  <body>
+
+    <test-fixture id="basic">
+      <template>
+        <legacyproject-related-requests></legacyproject-related-requests>
+      </template>
+    </test-fixture>
+
+    <script>
+    /* global PouchDbMock, DataGenerator, fixture, assert */
+    suite('query()', function() {
+      const projectId = 'test-project';
+      var element;
+      var requests;
+      var projectRequestsSize;
+      setup(function() {
+        element = fixture('basic');
+        requests = DataGenerator.generateRequests(projectId);
+        projectRequestsSize = DataGenerator.countProjectItems(requests, projectId);
+        PouchDbMock.mock(requests);
+      });
+
+      test('query returns a promise', function() {
+        var result = element.query(projectId);
+        assert.typeOf(result, 'promise');
+      });
+
+      test('query sets the "querying" property to true', function() {
+        element.query(projectId);
+        assert.isTrue(element.querying);
+      });
+
+      test('The promise resolves to an array', function() {
+        return element.query(projectId)
+        .then(result => {
+          assert.typeOf(result, 'array');
+        });
+      });
+
+      test('Resolved query sets the "querying" property to false', function() {
+        return element.query(projectId)
+        .then(() => {
+          assert.isFalse(element.querying);
+        });
+      });
+
+      test('Returns requests that belongs to the project', function() {
+        return element.query(projectId)
+        .then(result => {
+          assert.lengthOf(result, projectRequestsSize);
+        });
+      });
+
+      test('Returns projected version of the request object', function() {
+        return element.query(projectId)
+        .then(result => {
+          let item = result[0];
+          assert.typeOf(item.name, 'string');
+          assert.typeOf(item._id, 'string');
+          assert.typeOf(item._rev, 'string');
+          assert.isUndefined(item.method);
+          assert.isUndefined(item.url);
+        });
+      });
+
+      test('Returns full request object for fullQuery set', function() {
+        element.fullQuery = true;
+        return element.query(projectId)
+        .then(result => {
+          let item = result[0];
+          assert.typeOf(item.name, 'string');
+          assert.typeOf(item._id, 'string');
+          assert.typeOf(item._rev, 'string');
+          assert.typeOf(item.method, 'string');
+          assert.typeOf(item.url, 'string');
+        });
+      });
+    });
+    </script>
+
+  </body>
+</html>

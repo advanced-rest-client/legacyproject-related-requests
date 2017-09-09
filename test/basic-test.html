@@ -1,0 +1,94 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <script src="../../iron-test-helpers/test-helpers.js"></script>
+    <script src="../../iron-test-helpers/mock-interactions.js"></script>
+    <script src="../../chance/dist/chance.min.js"></script>
+    <script src="test-data-generator.js"></script>
+    <script src="pouchdb-mock.js"></script>
+    <link rel="import" href="../legacyproject-related-requests.html">
+  </head>
+  <body>
+
+    <test-fixture id="basic">
+      <template>
+        <legacyproject-related-requests></legacyproject-related-requests>
+      </template>
+    </test-fixture>
+
+    <script>
+    /* global sinon, fixture, assert */
+    suite('basic', function() {
+      var element;
+      setup(function() {
+        element = fixture('basic');
+      });
+
+      test('data is undefined by default', function() {
+        assert.isUndefined(element.data);
+      });
+
+      test('fullQuery is undefined by default', function() {
+        assert.isUndefined(element.fullQuery);
+      });
+
+      test('querying is undefined by default', function() {
+        assert.isUndefined(element.querying);
+      });
+
+      test('projectId is undefined by default', function() {
+        assert.isUndefined(element.projectId);
+      });
+    });
+
+    suite('_dispatchReadEvent', function() {
+      var element;
+      setup(function() {
+        element = fixture('basic');
+      });
+
+      test('project-related-requests-read is fired', function() {
+        var spy = sinon.spy();
+        element.addEventListener('project-related-requests-read', spy);
+        element._dispatchReadEvent();
+        assert.isTrue(spy.calledOnce);
+      });
+
+      test('project-related-requests-read event contains items property', function() {
+        var eventData;
+        element.addEventListener('project-related-requests-read', function(e) {
+          eventData = e.detail.items;
+        });
+        element._dispatchReadEvent(['test']);
+        assert.typeOf(eventData, 'array');
+        assert.equal(eventData[0], 'test');
+      });
+
+      test('project-related-requests-read event contains projectId property', function() {
+        var eventData;
+        element.addEventListener('project-related-requests-read', function(e) {
+          eventData = e.detail.projectId;
+        });
+        element._dispatchReadEvent(['test'], 'project-test');
+        assert.equal(eventData, 'project-test');
+      });
+    });
+
+    </script>
+
+  </body>
+</html>
