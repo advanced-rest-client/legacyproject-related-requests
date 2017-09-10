@@ -1,6 +1,6 @@
 {
   "name": "legacyproject-related-requests",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "Apache-2.0 OR CC-BY-4.0",
   "description": "Computes a list of requests related to a project",
   "devDependencies": {
