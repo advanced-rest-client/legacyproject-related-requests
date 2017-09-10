@@ -1,3 +1,9 @@
+<a name="0.1.3"></a>
+## [0.1.3](https://github.com/advanced-rest-client/legacyproject-related-requests/compare/0.1.2...0.1.3) (2017-09-10)
+
+
+
+
 <a name="0.1.2"></a>
 ## [0.1.2](https://github.com/advanced-rest-client/legacyproject-related-requests/compare/0.1.1...0.1.2) (2017-09-10)
 
