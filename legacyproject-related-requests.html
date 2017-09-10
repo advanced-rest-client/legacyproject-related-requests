@@ -43,7 +43,7 @@ Polymer({
 
   /**
    * Fired when the query function finished querying for the data.
-   * 
+   *
    * @event project-related-requests-read
    * @param {String} projectId Current project ID
    * @param {Array} items List of requests related to the project.
@@ -210,6 +210,12 @@ Polymer({
         return 1;
       }
       if (a.projectOrder < b.projectOrder) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      if (a.name < b.name) {
         return -1;
       }
       return 0;
