@@ -1,3 +1,13 @@
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/advanced-rest-client/legacyproject-related-requests/compare/0.1.2...2.0.0) (2018-06-21)
+
+
+### Docs
+
+* Updating docs. ([9b9074e7a490ef5d5ee594ae80fa011c50e4c824](https://github.com/advanced-rest-client/legacyproject-related-requests/commit/9b9074e7a490ef5d5ee594ae80fa011c50e4c824))
+
+
+
 <a name="0.1.3"></a>
 ## [0.1.3](https://github.com/advanced-rest-client/legacyproject-related-requests/compare/0.1.2...0.1.3) (2017-09-10)
 
