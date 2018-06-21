@@ -12,27 +12,28 @@ License for the specific language governing permissions and limitations under
 the License.
 -->
 <link rel="import" href="../polymer/polymer-element.html">
-<!--
-An element that computes a list of requests related to a project.
-It handles all request related events to update the list if the request object
-change.
-
-### Example
-```html
-<legacyproject-related-requests project-id="project-id"></legacyproject-related-requests>
-
 <script>
-document.querySelector('legacyproject-related-requests')
-.addEventListener('project-related-requests-read', function(e) {
-  console.log('Request for project: ', e.detail.projectId, ' are ready: ', e.detail.items);
-});
-</script>
-```
-
-@group Logic Elements
-@element legacyproject-related-requests
--->
-<script>
+/**
+ * An element that computes a list of requests related to a project.
+ * It handles all request related events to update the list if the request object
+ * change.
+ *
+ * ### Example
+ *
+ * ```html
+ * <legacyproject-related-requests project-id="project-id"></legacyproject-related-requests>
+ * <script>
+ *  document.querySelector('legacyproject-related-requests')
+ *  .addEventListener('project-related-requests-read', function(e) {
+ *    console.log('Request for project: ', e.detail.projectId, ' are ready: ', e.detail.items);
+ *  });
+ * &lt;/script>
+ * ```
+ *
+ * @polymer
+ * @customElement
+ * @memberof UiElements
+ */
 class LegacyprojectRelatedRequests extends Polymer.Element {
   static get is() { return 'legacyproject-related-requests'; }
   static get properties() {
