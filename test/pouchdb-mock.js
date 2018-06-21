@@ -3,7 +3,7 @@ PouchDbMock.mock = function(requests) {
   function Mocked() {}
 
   Mocked.prototype.allDocs = function() {
-    var result = {
+    const result = {
       rows: requests.map(item => {
         return {
           id: item._id
