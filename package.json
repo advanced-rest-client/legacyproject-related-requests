@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "description": "Computes a list of requests related to a project",
   "devDependencies": {
-    "@polymer/gen-typescript-declarations": "^1.1.1"
+    "@polymer/gen-typescript-declarations": "^1.6.1"
   },
   "private": false,
   "main": "legacyproject-related-requests.html",
