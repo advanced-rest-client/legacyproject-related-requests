@@ -3,12 +3,13 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-    <script src="../../web-component-tester/browser.js"></script>
-    <script src="../../chance/dist/chance.min.js"></script>
-    <script src="test-data-generator.js"></script>
-    <script src="pouchdb-mock.js"></script>
-    <link rel="import" href="../legacyproject-related-requests.html">
+
+    <script src="../../../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../../@polymer/test-fixture/test-fixture.js"></script>
+    <script src="../../../mocha/mocha.js"></script>
+    <script src="../../../chai/chai.js"></script>
+    <script src="../../../wct-mocha/wct-mocha.js"></script>
+
   </head>
   <body>
 
@@ -18,13 +19,15 @@
       </template>
     </test-fixture>
 
-    <script>
-    /* global PouchDbMock, DataGenerator */
+    <script type="module">
+    import '../legacyproject-related-requests.js';
+    import {PouchDbMock} from './pouchdb-mock.js';
+    import {DataGenerator} from './test-data-generator.js';
     suite('query()', function() {
       const projectId = 'test-project';
-      var element;
-      var requests;
-      var projectRequestsSize;
+      let element;
+      let requests;
+      let projectRequestsSize;
       setup(function() {
         element = fixture('basic');
         requests = DataGenerator.generateRequests(projectId);
@@ -33,7 +36,7 @@
       });
 
       test('query returns a promise', function() {
-        var result = element.query(projectId);
+        let result = element.query(projectId);
         assert.typeOf(result, 'promise');
       });
 
@@ -44,7 +47,7 @@
 
       test('The promise resolves to an array', function() {
         return element.query(projectId)
-        .then(result => {
+        .then((result) => {
           assert.typeOf(result, 'array');
         });
       });
@@ -58,14 +61,14 @@
 
       test('Returns requests that belongs to the project', function() {
         return element.query(projectId)
-        .then(result => {
+        .then((result) => {
           assert.lengthOf(result, projectRequestsSize);
         });
       });
 
       test('Returns projected version of the request object', function() {
         return element.query(projectId)
-        .then(result => {
+        .then((result) => {
           let item = result[0];
           assert.typeOf(item.name, 'string');
           assert.typeOf(item._id, 'string');
@@ -78,7 +81,7 @@
       test('Returns full request object for fullQuery set', function() {
         element.fullQuery = true;
         return element.query(projectId)
-        .then(result => {
+        .then((result) => {
           let item = result[0];
           assert.typeOf(item.name, 'string');
           assert.typeOf(item._id, 'string');

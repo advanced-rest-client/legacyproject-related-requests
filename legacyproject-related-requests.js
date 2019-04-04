@@ -1,4 +1,4 @@
-<!--
+/**
 @license
 Copyright 2018 The Advanced REST client authors <arc@mulesoft.com>
 Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -10,9 +10,9 @@ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations under
 the License.
--->
-<link rel="import" href="../polymer/polymer-element.html">
-<script>
+*/
+import {PolymerElement} from '../../@polymer/polymer/polymer-element.js';
+import '../../pouchdb/dist/pouchdb.js';
 /**
  * An element that computes a list of requests related to a project.
  * It handles all request related events to update the list if the request object
@@ -34,8 +34,7 @@ the License.
  * @customElement
  * @memberof UiElements
  */
-class LegacyprojectRelatedRequests extends Polymer.Element {
-  static get is() { return 'legacyproject-related-requests'; }
+class LegacyprojectRelatedRequests extends PolymerElement {
   static get properties() {
     return {
       /**
@@ -69,9 +68,6 @@ class LegacyprojectRelatedRequests extends Polymer.Element {
   // Returns a handler to the datastore instance
   get db() {
     /* global PouchDB */
-    if (typeof PouchDB === 'undefined') {
-      console.error('PouchDB is not included into the application.');
-    }
     return new PouchDB('saved-requests');
   }
 
@@ -114,6 +110,8 @@ class LegacyprojectRelatedRequests extends Polymer.Element {
   }
   /**
    * Automatically run function when either `opened` or `projectId` change.
+   *
+   * @param {String} projectId
    */
   _autoQuery(projectId) {
     if (!projectId) {
@@ -272,6 +270,8 @@ class LegacyprojectRelatedRequests extends Polymer.Element {
   /**
    * Handler for the `request-object-deleted` event. Removes a request from the
    * `data` list if removed item is on the list.
+   *
+   * @param {CustomEvent} e
    */
   _requestObjectDeleted(e) {
     if (e.cancelable) {
@@ -286,6 +286,8 @@ class LegacyprojectRelatedRequests extends Polymer.Element {
   /**
    * Handler for the `request-objects-deleted` event. Removes deleted requests
    * from the `data` list if they are on the list.
+   *
+   * @param {CustomEvent} e
    */
   _requestObjectsDeleted(e) {
     if (e.cancelable) {
@@ -323,5 +325,4 @@ class LegacyprojectRelatedRequests extends Polymer.Element {
    * @param {Array} items List of requests related to the project.
    */
 }
-window.customElements.define(LegacyprojectRelatedRequests.is, LegacyprojectRelatedRequests);
-</script>
+window.customElements.define('legacyproject-related-requests', LegacyprojectRelatedRequests);
