@@ -34,3 +34,7 @@
 
 
 
+# [3.0.0](https://github.com/advanced-rest-client/legacyproject-related-requests/compare/0.1.2...3.0.0) (2019-08-31)
+
+
+
