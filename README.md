@@ -7,17 +7,14 @@
 
 # legacyproject-related-requests
 
-Computes a list of requests related to a (legacy) project
+Computes a list of requests related to a (legacy) project.
+It is an internal ARC component to read request data.
 
 ## Example:
 
 ```html
 <legacyproject-related-requests></legacyproject-related-requests>
 ```
-
-## API components
-
-This components is a part of [API components ecosystem](https://elements.advancedrestclient.com/)
 
 ## Usage
 
@@ -26,54 +23,41 @@ This components is a part of [API components ecosystem](https://elements.advance
 npm install --save @advanced-rest-client/legacyproject-related-requests
 ```
 
-### In an html file
-
-```html
-<html>
-  <head>
-    <script type="module">
-      import './node_modules/@advanced-rest-client/legacyproject-related-requests/legacyproject-related-requests.js';
-    </script>
-  </head>
-  <body>
-    <legacyproject-related-requests></legacyproject-related-requests>
-  </body>
-</html>
-```
-
-### In a Polymer 3 element
+### In a LitElement
 
 ```js
-import {PolymerElement, html} from './node_modules/@polymer/polymer/polymer-element.js';
-import './node_modules/@advanced-rest-client/legacyproject-related-requests/legacyproject-related-requests.js';
+import { LitElement, html } from 'lit-element';
+import '@advanced-rest-client/legacyproject-related-requests/legacyproject-related-requests.js';
 
 class SampleElement extends PolymerElement {
-  static get template() {
+  render() {
     return html`
-    <legacyproject-related-requests></legacyproject-related-requests>
+    <legacyproject-related-requests
+      .projectId="${this.projectId}"
+      @data="${this._requestsHandler}"></legacyproject-related-requests>
     `;
+  }
+
+  _requestsHandler(e) {
+    this.requests = e.detail.value;
   }
 }
 customElements.define('sample-element', SampleElement);
 ```
 
-### Installation
+## Development
 
 ```sh
 git clone https://github.com/advanced-rest-client/legacyproject-related-requests
-cd api-url-editor
+cd legacyproject-related-requests
 npm install
-npm install -g polymer-cli
-```
-
-### Running the demo locally
-
-```sh
-polymer serve --npm
-open http://127.0.0.1:<port>/demo/
 ```
 
 ### Running the tests
 ```sh
-polymer test --npm
+npm test
 ```
+
+## API components
+
+This components is a part of [API components ecosystem](https://elements.advancedrestclient.com/)

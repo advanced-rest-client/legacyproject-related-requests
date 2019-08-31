@@ -11,8 +11,8 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations under
 the License.
 */
-import {PolymerElement} from '../../@polymer/polymer/polymer-element.js';
-import '../../pouchdb/dist/pouchdb.js';
+import { LitElement } from 'lit-element';
+import 'pouchdb/dist/pouchdb.js';
 /**
  * An element that computes a list of requests related to a project.
  * It handles all request related events to update the list if the request object
@@ -34,41 +34,94 @@ import '../../pouchdb/dist/pouchdb.js';
  * @customElement
  * @memberof UiElements
  */
-class LegacyprojectRelatedRequests extends PolymerElement {
+class LegacyprojectRelatedRequests extends LitElement {
   static get properties() {
     return {
       /**
        * An ID of the legacy project. Once changed it queries the datastore for
        * related requests.
        */
-      projectId: {
-        type: String,
-        observer: '_autoQuery'
-      },
-      /**
-       * list of requests found for the project.
-       */
-      data: {
-        type: Array,
-        notify: true
-      },
+      projectId: { type: String },
       /**
        * If `true` then it queries for whole request objects.
        * Otherwise it only returns the `name`, `_rev` and `_id` properties.
        */
-      fullQuery: Boolean,
-      // If set then query is performed
-      querying: {
-        type: Boolean,
-        notify: true,
-        readOnly: true
-      }
+      fullQuery: { type: Boolean }
     };
   }
-  // Returns a handler to the datastore instance
-  get db() {
+  // Returns a handler to the saved store instance
+  get savedDb() {
     /* global PouchDB */
     return new PouchDB('saved-requests');
+  }
+
+  // Returns a handler to the saved store instance
+  get projectDb() {
+    return new PouchDB('legacy-projects');
+  }
+
+  get projectId() {
+    return this._projectId;
+  }
+
+  set projectId(value) {
+    const old = this._projectId;
+    /* istanbul ignore if */
+    if (old === value) {
+      return;
+    }
+    this._projectId = value;
+    this._autoQuery(value);
+  }
+  /**
+   * @return {Array<Object>} list of requests found for the project.
+   */
+  get data() {
+    return this._data;
+  }
+
+  get _data() {
+    return this.__data;
+  }
+
+  set _data(value) {
+    const old = this.__data;
+    /* istanbul ignore if */
+    if (old === value) {
+      return;
+    }
+    this.__data = value;
+    this.dispatchEvent(new CustomEvent('data', {
+      detail: {
+        projectId: this.projectId,
+        items: value
+      }
+    }));
+  }
+
+  /**
+   * @return {Boolean} true if currently querying for the data.
+   */
+  get querying() {
+    return this._querying;
+  }
+
+  get _querying() {
+    return this.__querying;
+  }
+
+  set _querying(value) {
+    const old = this.__querying;
+    /* istanbul ignore if */
+    if (old === value) {
+      return;
+    }
+    this.__querying = value;
+    this.dispatchEvent(new CustomEvent('querying', {
+      detail: {
+        value
+      }
+    }));
   }
 
   constructor() {
@@ -79,7 +132,11 @@ class LegacyprojectRelatedRequests extends PolymerElement {
   }
 
   connectedCallback() {
-    super.connectedCallback();
+    /* istanbul ignore else */
+    if (super.connectedCallback) {
+      super.connectedCallback();
+    }
+    this.setAttribute('aria-hidden', 'true');
     window.addEventListener('request-object-changed', this._requestObjectChanged);
     window.addEventListener('request-object-deleted', this._requestObjectDeleted);
     window.addEventListener('request-objects-deleted', this._requestObjectsDeleted);
@@ -89,48 +146,22 @@ class LegacyprojectRelatedRequests extends PolymerElement {
     window.removeEventListener('request-object-changed', this._requestObjectChanged);
     window.removeEventListener('request-object-deleted', this._requestObjectDeleted);
     window.removeEventListener('request-objects-deleted', this._requestObjectsDeleted);
-    super.disconnectedCallback();
-  }
-  /**
-   * Dispatches non-bubbling `project-related-requests-read` event with
-   * data.
-   *
-   * @param {Array<Object>} requests List of request related to the project.
-   * @param {String} projectId ID of the project
-   */
-  _dispatchReadEvent(requests, projectId) {
-    this.dispatchEvent(new CustomEvent('project-related-requests-read', {
-      bubbles: false,
-      composed: true,
-      detail: {
-        projectId: projectId,
-        items: requests
-      }
-    }));
+    /* istanbul ignore else */
+    if (super.disconnectedCallback) {
+      super.disconnectedCallback();
+    }
   }
   /**
    * Automatically run function when either `opened` or `projectId` change.
    *
    * @param {String} projectId
    */
-  _autoQuery(projectId) {
+  async _autoQuery(projectId) {
     if (!projectId) {
       return;
     }
-    this.query(projectId)
-    .then((requests) => {
-      this.set('data', requests);
-      this._dispatchReadEvent(requests, projectId);
-    })
-    .catch((cause) => {
-      this.dispatchEvent(new CustomEvent('error', {
-        bubbles: false,
-        composed: true,
-        detail: {
-          message: cause.message
-        }
-      }));
-    });
+    const requests = await this.query(projectId);
+    this._data = requests;
   }
   /**
    * Queries the datastore for related requests list for the project.
@@ -139,23 +170,23 @@ class LegacyprojectRelatedRequests extends PolymerElement {
    * @return {Promise} Promise resolved to the list of related to project
    * requests.
    */
-  query(id) {
+  async query(id) {
     if (!id) {
-      return Promise.reject(new Error('The "id" argument is missing'));
+      throw new Error('The "id" argument is missing');
     }
-    this._setQuerying(true);
-    const db = this.db;
-    return db.allDocs()
-    .then((response) => this._filterRequests(response, id))
-    .then((response) => Promise.all(response.map((item) => db.get(item.id))))
-    .then((requests) => this._setDataScope(requests))
-    .then((requests) => this._prepareData(requests))
-    .then((requests) => {
-      this._setQuerying(false);
+    this._querying = true;
+    try {
+      const keys = await this._readProjectRequests(id);
+      if (!keys.length) {
+        return await this._tryLegacy(id);
+      }
+      let requests = await this._getProjectRequest(keys);
+      requests = this._prepareData(requests);
+      requests = this._setDataScope(requests);
+      this._querying = false;
       return requests;
-    })
-    .catch((cause) => {
-      this._setQuerying(false);
+    } catch (cause) {
+      this._querying = false;
       let message;
       if (cause.message) {
         message = cause.message;
@@ -171,10 +202,42 @@ class LegacyprojectRelatedRequests extends PolymerElement {
           fatal: true
         }
       }));
-      console.error('Query for project\'s related requests', cause);
-      throw cause;
-    });
+      return [];
+    }
   }
+
+  async _readProjectRequests(id) {
+    const db = this.projectDb;
+    const doc = await db.get(id);
+    return doc.requests || [];
+  }
+
+  async _getProjectRequest(keys) {
+    const db = this.savedDb;
+    const response = await db.allDocs({
+      include_docs: true,
+      keys
+    });
+    const result = [];
+    response.rows.forEach((item) => {
+      if (!item.error && item.doc) {
+        result[result.length] = item.doc;
+      }
+    });
+    return result;
+  }
+
+  async _tryLegacy(id) {
+    const db = this.savedDb;
+    let response = await db.allDocs();
+    response = this._filterRequests(response, id);
+    response = await Promise.all(response.map((item) => db.get(item.id)));
+    let requests = this._prepareData(response);
+    requests = this._setDataScope(response);
+    this._querying = false;
+    return requests;
+  }
+
   /**
    * Filters request list returned by the query to ones related to current
    * request.
@@ -223,18 +286,9 @@ class LegacyprojectRelatedRequests extends PolymerElement {
       if (a.projectOrder < b.projectOrder) {
         return -1;
       }
-      if (a.name > b.name) {
-        return 1;
-      }
-      if (a.name < b.name) {
-        return -1;
-      }
-      return 0;
+      return (a.name || '').localeCompare(b.name || '');
     });
-    return list.map((item) => {
-      item.id = item._id;
-      return item;
-    });
+    return list;
   }
   /**
    * Handler for the `request-object-changed` event.
@@ -247,25 +301,30 @@ class LegacyprojectRelatedRequests extends PolymerElement {
     if (e.cancelable) {
       return;
     }
-    const request = e.detail.request;
-    if (!request || !request.legacyProject || request.legacyProject !== this.projectId) {
+    const { request } = e.detail;
+    let projects = [];
+    if (request.legacyProject) {
+      projects = [request.legacyProject];
+    }
+    if (request.projects) {
+      projects = projects.concat(request.projects);
+    }
+    if (projects.indexOf(this.projectId) === -1) {
       return;
     }
-    let items = this.data;
-    if (!items || !items.length) {
-      this.set('data', [request]);
-      this._dispatchReadEvent(this.data, this.projectId);
-      return;
-    }
-    const oldId = e.detail.oldId;
-    const existing = items.findIndex((item) => item._id === oldId);
-    if (existing === -1) {
-      items.push(request);
+    let items = this.data || [];
+    if (!items.length) {
+      items = [request];
     } else {
-      items[existing] = e.detail.request;
+      const index = items.findIndex((item) => item._id === request._id);
+      if (index === -1) {
+        items.push(request);
+      } else {
+        items[index] = request;
+      }
+      items = this._prepareData(items);
     }
-    items = this._prepareData(items);
-    this.set('data', items);
+    this._data = [...items];
   }
   /**
    * Handler for the `request-object-deleted` event. Removes a request from the
@@ -278,10 +337,11 @@ class LegacyprojectRelatedRequests extends PolymerElement {
       // not yet saved
       return;
     }
-    if (!e.detail.id) {
+    const { id } = e.detail;
+    if (!id) {
       return;
     }
-    this._checkDeleted([e.detail.id]);
+    this._checkDeleted([id]);
   }
   /**
    * Handler for the `request-objects-deleted` event. Removes deleted requests
@@ -310,17 +370,22 @@ class LegacyprojectRelatedRequests extends PolymerElement {
     if (!items || !items.length) {
       return;
     }
+    let changed = false;
     for (let i = items.length - 1; i >= 0; i--) {
       if (~ids.indexOf(items[i]._id)) {
-        this.splice('data', i, 1);
+        items.splice(i, 1);
+        changed = true;
       }
+    }
+    if (changed) {
+      this._data = [...items];
     }
   }
 
   /**
    * Fired when the query function finished querying for the data.
    *
-   * @event project-related-requests-read
+   * @event project-related-requests
    * @param {String} projectId Current project ID
    * @param {Array} items List of requests related to the project.
    */

@@ -12,6 +12,8 @@
 // tslint:disable:variable-name Describing an API that's defined elsewhere.
 // tslint:disable:no-any describes the API as best we are able today
 
+import {LitElement} from 'lit-element';
+
 declare namespace UiElements {
 
   /**
@@ -31,50 +33,41 @@ declare namespace UiElements {
    * &lt;/script>
    * ```
    */
-  class LegacyprojectRelatedRequests extends PolymerElement {
+  class LegacyprojectRelatedRequests extends LitElement {
 
     /**
-     *  Returns a handler to the datastore instance
+     *  Returns a handler to the saved store instance
      */
-    readonly db: any;
+    readonly savedDb: any;
+
+    /**
+     *  Returns a handler to the saved store instance
+     */
+    readonly projectDb: any;
 
     /**
      * An ID of the legacy project. Once changed it queries the datastore for
      * related requests.
      */
     projectId: string|null|undefined;
-
-    /**
-     * list of requests found for the project.
-     */
-    data: any[]|null|undefined;
+    readonly data: Array<object|null>|null;
+    _data: any;
+    readonly querying: Boolean|null;
+    _querying: any;
 
     /**
      * If `true` then it queries for whole request objects.
      * Otherwise it only returns the `name`, `_rev` and `_id` properties.
      */
     fullQuery: boolean|null|undefined;
-
-    /**
-     * If set then query is performed
-     */
-    readonly querying: boolean|null|undefined;
+    constructor();
     connectedCallback(): void;
     disconnectedCallback(): void;
 
     /**
-     * Dispatches non-bubbling `project-related-requests-read` event with
-     * data.
-     *
-     * @param requests List of request related to the project.
-     * @param projectId ID of the project
-     */
-    _dispatchReadEvent(requests: Array<object|null>|null, projectId: String|null): void;
-
-    /**
      * Automatically run function when either `opened` or `projectId` change.
      */
-    _autoQuery(projectId: String|null): void;
+    _autoQuery(projectId: String|null): any;
 
     /**
      * Queries the datastore for related requests list for the project.
@@ -84,6 +77,9 @@ declare namespace UiElements {
      * requests.
      */
     query(id: String|null): Promise<any>|null;
+    _readProjectRequests(id: any): any;
+    _getProjectRequest(keys: any): any;
+    _tryLegacy(id: any): any;
 
     /**
      * Filters request list returned by the query to ones related to current
@@ -149,5 +145,3 @@ declare global {
     "legacyproject-related-requests": UiElements.LegacyprojectRelatedRequests;
   }
 }
-
-export {};
